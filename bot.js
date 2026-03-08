@@ -1,66 +1,64 @@
-const {Client,GatewayIntentBits} = require("discord.js")
+const { Client, GatewayIntentBits } = require("discord.js")
 const fs = require("fs")
 
 const client = new Client({
- intents:[
+ intents: [
   GatewayIntentBits.Guilds,
   GatewayIntentBits.GuildMessages,
   GatewayIntentBits.MessageContent
  ]
 })
 
-const TOKEN = process.env.DISCORD_TOKEN
+const PREFIX = "."
 
-function randomKey(){
-
- const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
- let key="AT-"
-
- for(let i=0;i<25;i++){
-  key+=chars[Math.floor(Math.random()*chars.length)]
- }
-
- return key
+function generateKey(name){
+ const random = Math.random().toString(36).substring(2,10).toUpperCase()
+ const time = Date.now().toString().slice(-4)
+ return `KEY-${name}-${random}-${time}`
 }
 
 client.once("ready",()=>{
- console.log("Discord bot online")
+ console.log("🤖 Bot online")
 })
 
-client.on("messageCreate",msg=>{
+client.on("messageCreate",(msg)=>{
 
  if(msg.author.bot) return
+ if(!msg.content.startsWith(PREFIX)) return
 
- if(msg.content.startsWith(".taokey")){
+ const args = msg.content.slice(PREFIX.length).trim().split(/ +/)
+ const cmd = args.shift().toLowerCase()
 
-  const args=msg.content.split(" ")
+ if(cmd === "taokey"){
 
-  const player=args[1]
+  const name = args[0]
 
-  if(!player){
-   msg.reply("Usage: .taokey playername")
+  if(!name){
+   msg.reply("❌ dùng: .taokey ten_key")
    return
   }
 
-  const key=randomKey()
+  const key = generateKey(name)
 
-  const expire=Math.floor(Date.now()/1000)+(30*86400)
+  let data = []
 
-  const data=JSON.parse(fs.readFileSync("keys.json"))
+  if(fs.existsSync("keys.json")){
+   data = JSON.parse(fs.readFileSync("keys.json"))
+  }
 
   data.push({
+   name:name,
    key:key,
-   player:player,
-   expire:expire
+   created:Date.now(),
+   expire:"never"
   })
 
   fs.writeFileSync("keys.json",JSON.stringify(data,null,2))
 
-  msg.reply(`Key created for ${player}\nKey: ${key}`)
+  msg.reply(`✅ Key tạo thành công:\n\`${key}\``)
 
  }
 
 })
 
-client.login(TOKEN)
+client.login(process.env.DISCORD_TOKEN)
