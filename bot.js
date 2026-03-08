@@ -2,7 +2,7 @@ const { Client, GatewayIntentBits } = require("discord.js")
 
 console.log("Starting Discord bot...")
 
-const TOKEN = process.env.DISCORD_TOKEN
+const TOKEN = " MTQ1OTg1NjY5ODY4Nzg4NTYzMA.G0MVJ-.HFhIj2bSCsiPDFaTl5G8PT1QaHuYDFoocsnWVY"
 
 if (!TOKEN) {
   console.log("❌ DISCORD_TOKEN not found")
