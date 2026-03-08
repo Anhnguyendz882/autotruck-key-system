@@ -1,49 +1,66 @@
-const express = require("express")
+const {Client,GatewayIntentBits} = require("discord.js")
 const fs = require("fs")
-const path = require("path")
 
-const app = express()
-
-app.use(express.json())
-app.use(express.static(__dirname))
-
-app.get("/", (req,res)=>{
- res.sendFile(path.join(__dirname,"index.html"))
+const client = new Client({
+ intents:[
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.MessageContent
+ ]
 })
 
-app.get("/keys",(req,res)=>{
- const data = JSON.parse(fs.readFileSync("keys.json"))
- res.json(data)
-})
+const TOKEN = process.env.DISCORD_TOKEN
 
-app.post("/verify",(req,res)=>{
+function randomKey(){
 
- const {key,player} = req.body
- const data = JSON.parse(fs.readFileSync("keys.json"))
+ const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
- const found = data.find(k=>k.key===key)
+ let key="AT-"
 
- if(!found){
-  return res.json({status:false,msg:"Invalid key"})
+ for(let i=0;i<25;i++){
+  key+=chars[Math.floor(Math.random()*chars.length)]
  }
 
- if(found.player !== player){
-  return res.json({status:false,msg:"Wrong player"})
- }
+ return key
+}
 
- const now = Math.floor(Date.now()/1000)
-
- if(now > found.expire){
-  return res.json({status:false,msg:"Key expired"})
- }
-
- res.json({status:true})
+client.once("ready",()=>{
+ console.log("Discord bot online")
 })
 
-const PORT = process.env.PORT || 3000
+client.on("messageCreate",msg=>{
 
-app.listen(PORT,()=>{
- console.log("Server running on "+PORT)
+ if(msg.author.bot) return
+
+ if(msg.content.startsWith(".taokey")){
+
+  const args=msg.content.split(" ")
+
+  const player=args[1]
+
+  if(!player){
+   msg.reply("Usage: .taokey playername")
+   return
+  }
+
+  const key=randomKey()
+
+  const expire=Math.floor(Date.now()/1000)+(30*86400)
+
+  const data=JSON.parse(fs.readFileSync("keys.json"))
+
+  data.push({
+   key:key,
+   player:player,
+   expire:expire
+  })
+
+  fs.writeFileSync("keys.json",JSON.stringify(data,null,2))
+
+  msg.reply(`Key created for ${player}\nKey: ${key}`)
+
+ }
+
 })
 
-require("./bot.js")
+client.login(TOKEN)
