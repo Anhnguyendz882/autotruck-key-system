@@ -13,7 +13,7 @@ const TOKEN = process.env.DISCORD_TOKEN
 
 function randomKey(){
 
-const chars=" MTQ1OTUyNDc5MjcwNDE3MjIxNQ.G8kmnW.mM0eOskBC9DM9D3BislsLV7GSmm6Kd1BCxOumE"
+const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 let key="AT-"
 
