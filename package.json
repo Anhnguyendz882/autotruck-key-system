@@ -5,8 +5,8 @@
  "scripts":{
    "start":"node server.js & node bot.js"
  },
- "dependencies":{
-   "discord.js":"^4.18.2",
-   "express":"^14.14.1"
- }
+"dependencies": {
+  "express": "^4.18.2",
+  "discord.js": "^14.14.1"
+}
 }
