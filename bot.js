@@ -1,48 +1,49 @@
-const {Client,GatewayIntentBits} = require("discord.js")
+const { Client, GatewayIntentBits } = require("discord.js")
 const fs = require("fs")
 
 const client = new Client({
- intents:[
+ intents: [
   GatewayIntentBits.Guilds,
   GatewayIntentBits.GuildMessages,
   GatewayIntentBits.MessageContent
  ]
 })
 
-const PREFIX = "."
+function createKey(){
 
-function randomKey(){
+ const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+ let key = "KEY-"
 
- return "KEY-"+Math.random().toString(36).substring(2,10).toUpperCase()
+ for(let i=0;i<10;i++){
+  key += chars[Math.floor(Math.random()*chars.length)]
+ }
+
+ return key
 }
 
 client.once("ready",()=>{
- console.log("Bot online")
+ console.log("BOT ONLINE: "+client.user.tag)
 })
 
-client.on("messageCreate",(msg)=>{
+client.on("messageCreate",msg=>{
 
  if(msg.author.bot) return
- if(!msg.content.startsWith(PREFIX)) return
 
- const args = msg.content.slice(1).split(" ")
- const cmd = args[0]
+ if(msg.content === ".taokey"){
 
- if(cmd==="taokey"){
-
-  const key = randomKey()
-
-  let data=[]
+  let keys=[]
 
   if(fs.existsSync("keys.json")){
-   data=JSON.parse(fs.readFileSync("keys.json"))
+   keys = JSON.parse(fs.readFileSync("keys.json"))
   }
 
-  data.push({key:key})
+  const newKey = createKey()
 
-  fs.writeFileSync("keys.json",JSON.stringify(data,null,2))
+  keys.push(newKey)
 
-  msg.reply("Key created: "+key)
+  fs.writeFileSync("keys.json",JSON.stringify(keys,null,2))
+
+  msg.reply("🔑 Key mới: "+newKey)
 
  }
 
