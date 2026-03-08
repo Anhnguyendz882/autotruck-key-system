@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 <meta charset="UTF-8">
 <title>AutoTruck Panel</title>
@@ -7,78 +8,63 @@
 <style>
 
 body{
-background:linear-gradient(135deg,#0f172a,#020617);
-font-family:Arial;
+background:#0f172a;
 color:white;
+font-family:Arial;
 display:flex;
-justify-content:center;
 align-items:center;
+justify-content:center;
 height:100vh;
 flex-direction:column;
-margin:0;
 }
 
-.glass{
-backdrop-filter:blur(15px);
-background:rgba(255,255,255,0.05);
-border-radius:16px;
+.box{
+background:#1e293b;
 padding:40px;
-box-shadow:0 0 40px rgba(0,0,0,0.6);
-animation:fade 0.7s ease;
+border-radius:10px;
 }
 
 input{
 padding:10px;
-border:none;
-border-radius:6px;
-width:220px;
 margin-top:10px;
+border:none;
+border-radius:5px;
 }
 
 button{
-margin-top:15px;
 padding:10px 20px;
+margin-top:15px;
 border:none;
-border-radius:8px;
 background:#3b82f6;
 color:white;
-cursor:pointer;
+border-radius:6px;
 }
 
 table{
-margin-top:30px;
+margin-top:20px;
 border-collapse:collapse;
 }
 
 td,th{
-border:1px solid rgba(255,255,255,0.2);
-padding:10px 18px;
-}
-
-.stat{
-margin-top:10px;
-font-size:18px;
-}
-
-@keyframes fade{
-from{opacity:0;transform:translateY(20px)}
-to{opacity:1;transform:translateY(0)}
+border:1px solid #555;
+padding:10px 15px;
 }
 
 </style>
+
 </head>
 
 <body>
 
-<div id="login" class="glass">
+<div id="login" class="box">
 
 <h2>Admin Login</h2>
 
-<input id="user" placeholder="Admin Username">
+<input id="user" placeholder="Username">
 
 <br>
 
-<input id="pass" type="password" placeholder="Admin Password">
+<input id="pass" type="password" placeholder="Password">
 
 <br>
 
@@ -86,12 +72,9 @@ to{opacity:1;transform:translateY(0)}
 
 </div>
 
-
 <div id="dashboard" style="display:none">
 
-<h1>AutoTruck Key Panel</h1>
-
-<div class="stat" id="totalKeys">Total Keys: 0</div>
+<h1>Key Dashboard</h1>
 
 <table id="keys">
 
@@ -105,7 +88,6 @@ to{opacity:1;transform:translateY(0)}
 
 </div>
 
-
 <script>
 
 function login(){
@@ -113,7 +95,7 @@ function login(){
 const user=document.getElementById("user").value
 const pass=document.getElementById("pass").value
 
-if(user==="admin" && pass==="123456"){
+if(user==="kn" && pass==="929392Huy"){
 
 document.getElementById("login").style.display="none"
 document.getElementById("dashboard").style.display="block"
@@ -122,7 +104,7 @@ loadKeys()
 
 }else{
 
-alert("Wrong admin login")
+alert("Wrong login")
 
 }
 
@@ -133,8 +115,6 @@ function loadKeys(){
 fetch("/keys")
 .then(res=>res.json())
 .then(data=>{
-
-document.getElementById("totalKeys").innerText="Total Keys: "+data.length
 
 const table=document.getElementById("keys")
 
@@ -159,4 +139,4 @@ table.appendChild(row)
 </script>
 
 </body>
-  </html>
+</html>
