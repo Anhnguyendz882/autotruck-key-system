@@ -1,8 +1,13 @@
 const { Client, GatewayIntentBits } = require("discord.js")
 const fs = require("fs")
 
-// lấy token từ render env
+// lấy token từ Render ENV
 const TOKEN = process.env.DISCORD_TOKEN
+
+if(!TOKEN){
+  console.log("❌ DISCORD_TOKEN not found in environment variables")
+  process.exit(1)
+}
 
 const client = new Client({
   intents:[
@@ -14,7 +19,7 @@ const client = new Client({
 
 const KEY_FILE = "./keys.json"
 
-// tạo file key nếu chưa có
+// tạo file nếu chưa có
 if(!fs.existsSync(KEY_FILE)){
   fs.writeFileSync(KEY_FILE, JSON.stringify({}))
 }
@@ -39,15 +44,14 @@ function generateKey(){
 }
 
 client.once("ready", ()=>{
-  console.log("BOT ONLINE:", client.user.tag)
+  console.log("🤖 BOT ONLINE:", client.user.tag)
 })
 
-// command handler
-client.on("messageCreate", async (msg)=>{
+client.on("messageCreate",(msg)=>{
 
   if(msg.author.bot) return
 
-  const args = msg.content.split(" ")
+  const args = msg.content.trim().split(" ")
 
   // tạo key
   if(args[0] === ".taokey"){
@@ -98,10 +102,9 @@ Ingame: ${keys[key].ingame}`)
     }else{
       msg.reply("❌ Key không tồn tại")
     }
-
   }
 
-  // xóa key
+  // xoá key
   if(args[0] === ".delkey"){
 
     const key = args[1]
@@ -115,7 +118,6 @@ Ingame: ${keys[key].ingame}`)
     }else{
       msg.reply("❌ Key không tồn tại")
     }
-
   }
 
 })
