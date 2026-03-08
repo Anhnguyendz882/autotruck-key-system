@@ -6,12 +6,12 @@ const app = express()
 
 app.use(express.json())
 
-// cho phép load file web
-app.use(express.static("web"))
+// cho phép load file html/css/js
+app.use(express.static(__dirname))
 
 // trang chủ
 app.get("/", (req,res)=>{
- res.sendFile(path.join(__dirname,"../web/index.html"))
+ res.sendFile(path.join(__dirname,"index.html"))
 })
 
 // API lấy danh sách key
@@ -20,6 +20,8 @@ app.get("/keys",(req,res)=>{
  res.json(data)
 })
 
-app.listen(3000,()=>{
- console.log("Server running")
+const PORT = process.env.PORT || 3000
+
+app.listen(PORT,()=>{
+ console.log("Server running on port "+PORT)
 })
