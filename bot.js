@@ -1,113 +1,114 @@
-const { Client, GatewayIntentBits } = require("discord.js")
+const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js")
 const fs = require("fs")
 
 const TOKEN = process.env.DISCORD_TOKEN
-const CHANNEL_ID = process.env.LOG_CHANNEL
 
 const client = new Client({
-  intents:[
+  intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent
   ]
 })
 
-const DB="keys.json"
+const DB = "keys.json"
 
-if(!fs.existsSync(DB)){
-  fs.writeFileSync(DB,JSON.stringify({}))
+if (!fs.existsSync(DB)) {
+  fs.writeFileSync(DB, JSON.stringify({}))
 }
 
-function generateKey(){
+function loadDB() {
+  return JSON.parse(fs.readFileSync(DB))
+}
 
-  const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-  let key="AT-"
+function saveDB(data) {
+  fs.writeFileSync(DB, JSON.stringify(data, null, 2))
+}
 
-  for(let i=0;i<10;i++){
-    key+=chars[Math.floor(Math.random()*chars.length)]
+function genKey() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  let key = "AT-"
+
+  for (let i = 0; i < 10; i++) {
+    key += chars[Math.floor(Math.random() * chars.length)]
   }
 
   return key
 }
 
-client.once("ready",()=>{
-
-  console.log("BOT ONLINE:",client.user.tag)
-
-  setInterval(checkExpire,60000)
-
+client.once("ready", () => {
+  console.log("Bot ready:", client.user.tag)
 })
 
-client.on("messageCreate",msg=>{
+client.on("messageCreate", async (msg) => {
 
-  if(msg.author.bot) return
+  if (msg.author.bot) return
 
-  if(!msg.content.startsWith(".taokey")) return
+  const args = msg.content.split(" ")
 
-  const args=msg.content.split(" ")
+  if (args[0] === ".taokey") {
 
-  if(args.length<3){
-    return msg.reply("dùng: .taokey ingame days")
-  }
+    const ingame = args[1]
+    const days = parseInt(args[2])
 
-  const ingame=args[1]
-  const days=parseInt(args[2])
-
-  if(isNaN(days)){
-    return msg.reply("days phải là số")
-  }
-
-  const key=generateKey()
-
-  const expire=Date.now()+days*86400000
-
-  const data=JSON.parse(fs.readFileSync(DB))
-
-  data[key]={
-    user:ingame,
-    expire:expire,
-    hwid:null
-  }
-
-  fs.writeFileSync(DB,JSON.stringify(data,null,2))
-
-  msg.reply(
-`KEY CREATED
-
-User: ${ingame}
-Key: ${key}
-Days: ${days}`
-)
-
-})
-
-function checkExpire(){
-
-  const data=JSON.parse(fs.readFileSync(DB))
-  let changed=false
-
-  for(const key in data){
-
-    if(Date.now()>data[key].expire){
-
-      const user=data[key].user
-      delete data[key]
-
-      const channel=client.channels.cache.get(CHANNEL_ID)
-
-      if(channel){
-        channel.send(`Key ${key} của ${user} đã hết hạn và bị xóa`)
-      }
-
-      changed=true
+    if (!ingame || !days) {
+      return msg.reply("Use: .taokey ingame days")
     }
 
+    const key = genKey()
+    const expire = Date.now() + days * 86400000
+
+    const db = loadDB()
+
+    db[key] = {
+      user: ingame,
+      expire: expire
+    }
+
+    saveDB(db)
+
+    msg.reply(`Key created: ${key}`)
   }
 
-  if(changed){
-    fs.writeFileSync(DB,JSON.stringify(data,null,2))
+  if (args[0] === ".listkey") {
+
+    const db = loadDB()
+
+    const embed = new EmbedBuilder()
+      .setTitle("Key List")
+      .setColor(0x00ff00)
+
+    for (const key in db) {
+
+      const user = db[key].user
+      const expire = new Date(db[key].expire).toLocaleDateString()
+
+      embed.addFields({
+        name: key,
+        value: `User: ${user}\nExpire: ${expire}`
+      })
+    }
+
+    msg.reply({ embeds: [embed] })
   }
 
-}
+  if (args[0] === ".delkey") {
+
+    const ingame = args[1]
+
+    const db = loadDB()
+
+    for (const key in db) {
+      if (db[key].user === ingame) {
+        delete db[key]
+      }
+    }
+
+    saveDB(db)
+
+    msg.reply("Key removed")
+  }
+
+})
 
 client.login(TOKEN)
