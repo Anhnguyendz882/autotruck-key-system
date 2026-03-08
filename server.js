@@ -1,44 +1,52 @@
-require("./bot")
+const express=require("express")
+const fs=require("fs")
 
-const express = require("express")
-const fs = require("fs")
-
-const app = express()
+const app=express()
 app.use(express.json())
 
-const KEY_FILE = "./keys.json"
+const DB="keys.json"
 
-if (!fs.existsSync(KEY_FILE)) {
-  fs.writeFileSync(KEY_FILE, "{}")
-}
+app.post("/check",(req,res)=>{
 
-app.get("/", (req,res)=>{
-  res.send("API KEY SYSTEM RUNNING")
+  const {key,username,hwid}=req.body
+
+  const data=JSON.parse(fs.readFileSync(DB))
+
+  const info=data[key]
+
+  if(!info){
+    return res.json({status:"invalid"})
+  }
+
+  if(info.user!==username){
+    return res.json({status:"wrong_user"})
+  }
+
+  if(Date.now()>info.expire){
+    return res.json({status:"expired"})
+  }
+
+  if(info.hwid==null){
+
+    info.hwid=hwid
+    fs.writeFileSync(DB,JSON.stringify(data,null,2))
+
+  }else if(info.hwid!==hwid){
+
+    return res.json({status:"shared_key"})
+  }
+
+  const script=fs.readFileSync("AutoTruck_v9.lua","utf8")
+
+  res.json({
+    status:"success",
+    script:script
+  })
+
 })
 
-app.get("/check", (req,res)=>{
-  const key = req.query.key
-  const ingame = req.query.ingame
+app.listen(3000,()=>{
 
-  if(!key || !ingame){
-    return res.json({status:false,msg:"missing key or ingame"})
-  }
+  console.log("API RUNNING")
 
-  const keys = JSON.parse(fs.readFileSync(KEY_FILE))
-
-  if(!keys[key]){
-    return res.json({status:false,msg:"invalid key"})
-  }
-
-  if(keys[key].ingame !== ingame){
-    return res.json({status:false,msg:"wrong ingame"})
-  }
-
-  res.json({status:true})
-})
-
-const PORT = process.env.PORT || 3000
-
-app.listen(PORT, ()=>{
-  console.log("API KEY SYSTEM RUNNING")
 })
