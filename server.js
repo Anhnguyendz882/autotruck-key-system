@@ -1,6 +1,6 @@
 const express = require("express")
 const fs = require("fs")
-
+require("./bot")
 const app = express()
 app.use(express.json())
 
