@@ -1,66 +1,77 @@
 const { Client, GatewayIntentBits } = require("discord.js")
 const fs = require("fs")
 
+const TOKEN = process.env.TOKEN
+
 const client = new Client({
-    intents:[GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
+  intents:[
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
 })
 
-console.log("TOKEN:", process.env.TOKEN)
+const KEY_FILE = "./keys.json"
 
-const DB = "./keydb.json"
-
-function loadDB(){
-    return JSON.parse(fs.readFileSync(DB))
+if(!fs.existsSync(KEY_FILE)){
+  fs.writeFileSync(KEY_FILE, JSON.stringify({}))
 }
 
-function saveDB(data){
-    fs.writeFileSync(DB, JSON.stringify(data,null,2))
+function loadKeys(){
+  return JSON.parse(fs.readFileSync(KEY_FILE))
 }
 
-function randomKey(){
-
-    const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-    let k="KEY-"
-
-    for(let i=0;i<20;i++)
-        k+=chars[Math.floor(Math.random()*chars.length)]
-
-    return k
+function saveKeys(data){
+  fs.writeFileSync(KEY_FILE, JSON.stringify(data,null,2))
 }
 
-client.on("messageCreate", msg=>{
+function generateKey(){
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+  let key = ""
+  for(let i=0;i<32;i++){
+    key += chars.charAt(Math.floor(Math.random()*chars.length))
+  }
+  return key
+}
 
-    if(msg.author.bot) return
+client.once("ready", ()=>{
+  console.log("BOT ONLINE:", client.user.tag)
+})
 
-    if(msg.content.startsWith(".taokey")){
+client.on("messageCreate", async (msg)=>{
+  if(msg.author.bot) return
 
-        const name = msg.content.split(" ")[1]
+  const args = msg.content.split(" ")
 
-        if(!name)
-            return msg.reply("❌ dùng: `.taokey ten_ingame`")
+  if(args[0] === ".taokey"){
 
-        const key = randomKey()
+    const ingame = args[1]
 
-        const db = loadDB()
-
-        db.keys.push({
-            key:key,
-            name:name,
-            created:Date.now()
-        })
-
-        saveDB(db)
-
-        msg.reply(
-`✅ Đã tạo key
-
-👤 Name: ${name}
-🔑 Key: ${key}
-
-⚠️ Chỉ name này mới dùng được`
-        )
+    if(!ingame){
+      msg.reply("❌ dùng: `.taokey ten_ingame`")
+      return
     }
+
+    const keys = loadKeys()
+
+    const key = generateKey()
+
+    keys[key] = {
+      ingame: ingame,
+      discord: msg.author.id,
+      created: Date.now()
+    }
+
+    saveKeys(keys)
+
+    msg.reply(`✅ Key của **${ingame}**
+
+\`\`\`
+${key}
+\`\`\`
+`)
+  }
+
 })
 
 client.login(TOKEN)
