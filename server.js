@@ -36,7 +36,7 @@ app.post("/check",(req,res)=>{
     return res.json({status:"shared_key"})
   }
 
-  const script=fs.readFileSync("AutoTruck_v9.lua","utf8")
+  const script=fs.readFileSync("AutoTruck_.lua","utf8")
 
   res.json({
     status:"success",
