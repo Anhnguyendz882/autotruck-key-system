@@ -1,13 +1,7 @@
 const { Client, GatewayIntentBits } = require("discord.js")
 const fs = require("fs")
 
-// lấy token từ Render ENV
-const TOKEN = process.env.DISCORD_TOKEN
-
-if(!TOKEN){
-  console.log("❌ DISCORD_TOKEN not found in environment variables")
-  process.exit(1)
-}
+console.log("Starting Discord bot...")
 
 const client = new Client({
   intents:[
@@ -17,109 +11,50 @@ const client = new Client({
   ]
 })
 
+const TOKEN = process.env.DISCORD_TOKEN
+
+if(!TOKEN){
+  console.log("❌ DISCORD_TOKEN not found in environment variables")
+  return
+}
+
 const KEY_FILE = "./keys.json"
 
-// tạo file nếu chưa có
-if(!fs.existsSync(KEY_FILE)){
-  fs.writeFileSync(KEY_FILE, JSON.stringify({}))
-}
-
-function loadKeys(){
-  return JSON.parse(fs.readFileSync(KEY_FILE))
-}
-
-function saveKeys(data){
-  fs.writeFileSync(KEY_FILE, JSON.stringify(data,null,2))
+if (!fs.existsSync(KEY_FILE)) {
+  fs.writeFileSync(KEY_FILE, "{}")
 }
 
 function generateKey(){
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-  let key = ""
-
-  for(let i=0;i<32;i++){
-    key += chars.charAt(Math.floor(Math.random()*chars.length))
-  }
-
-  return key
+  return "KEY-"+Math.random().toString(36).substring(2,10).toUpperCase()
 }
 
-client.once("ready", ()=>{
-  console.log("🤖 BOT ONLINE:", client.user.tag)
+client.once("ready",()=>{
+  console.log(`🤖 BOT ONLINE: ${client.user.tag}`)
 })
 
-client.on("messageCreate",(msg)=>{
-
+client.on("messageCreate",msg=>{
   if(msg.author.bot) return
 
-  const args = msg.content.trim().split(" ")
-
-  // tạo key
-  if(args[0] === ".taokey"){
-
+  if(msg.content.startsWith(".taokey")){
+    const args = msg.content.split(" ")
     const ingame = args[1]
 
     if(!ingame){
-      msg.reply("❌ dùng: `.taokey ten_ingame`")
-      return
+      return msg.reply("❌ dùng: .taokey ingame")
     }
-
-    const keys = loadKeys()
 
     const key = generateKey()
 
+    const keys = JSON.parse(fs.readFileSync(KEY_FILE))
+
     keys[key] = {
-      ingame: ingame,
-      discord: msg.author.id,
-      created: Date.now()
+      ingame: ingame
     }
 
-    saveKeys(keys)
+    fs.writeFileSync(KEY_FILE, JSON.stringify(keys,null,2))
 
-    msg.reply(`✅ Key cho **${ingame}**
-
-\`\`\`
-${key}
-\`\`\`
-`)
+    msg.reply(`✅ KEY CREATED\n\nKEY: \`${key}\`\nINGAME: \`${ingame}\``)
   }
-
-  // check key
-  if(args[0] === ".checkkey"){
-
-    const key = args[1]
-
-    if(!key){
-      msg.reply("❌ dùng: `.checkkey key`")
-      return
-    }
-
-    const keys = loadKeys()
-
-    if(keys[key]){
-      msg.reply(`✅ Key hợp lệ
-
-Ingame: ${keys[key].ingame}`)
-    }else{
-      msg.reply("❌ Key không tồn tại")
-    }
-  }
-
-  // xoá key
-  if(args[0] === ".delkey"){
-
-    const key = args[1]
-
-    const keys = loadKeys()
-
-    if(keys[key]){
-      delete keys[key]
-      saveKeys(keys)
-      msg.reply("🗑️ Key đã bị xóa")
-    }else{
-      msg.reply("❌ Key không tồn tại")
-    }
-  }
-
 })
 
 client.login(TOKEN)
