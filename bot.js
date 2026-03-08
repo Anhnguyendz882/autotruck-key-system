@@ -5,7 +5,7 @@ const client = new Client({
     intents:[GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
 })
 
-const TOKEN = process.env.TOKEN
+console.log("TOKEN:", process.env.TOKEN)
 
 const DB = "./keydb.json"
 
