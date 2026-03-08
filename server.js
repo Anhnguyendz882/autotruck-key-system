@@ -1,47 +1,44 @@
+require("./bot")
+
 const express = require("express")
 const fs = require("fs")
-require("./bot")
 
 const app = express()
 app.use(express.json())
 
-const DB = "./keydb.json"
+const KEY_FILE = "./keys.json"
 
-function loadDB(){
-    return JSON.parse(fs.readFileSync(DB))
-}
-
-function saveDB(data){
-    fs.writeFileSync(DB, JSON.stringify(data,null,2))
+if (!fs.existsSync(KEY_FILE)) {
+  fs.writeFileSync(KEY_FILE, "{}")
 }
 
 app.get("/", (req,res)=>{
-    res.sendFile(__dirname + "/index.html")
+  res.send("API KEY SYSTEM RUNNING")
 })
 
 app.get("/check", (req,res)=>{
+  const key = req.query.key
+  const ingame = req.query.ingame
 
-    const key = req.query.key
-    const name = req.query.name
+  if(!key || !ingame){
+    return res.json({status:false,msg:"missing key or ingame"})
+  }
 
-    if(!key || !name) return res.json({status:"error"})
+  const keys = JSON.parse(fs.readFileSync(KEY_FILE))
 
-    const db = loadDB()
+  if(!keys[key]){
+    return res.json({status:false,msg:"invalid key"})
+  }
 
-    const found = db.keys.find(k=>k.key === key)
+  if(keys[key].ingame !== ingame){
+    return res.json({status:false,msg:"wrong ingame"})
+  }
 
-    if(!found)
-        return res.json({status:"invalid"})
-
-    if(found.name !== name)
-        return res.json({status:"wrong_name"})
-
-    res.json({
-        status:"ok",
-        name:found.name
-    })
+  res.json({status:true})
 })
 
-app.listen(process.env.PORT || 3000, ()=>{
-    console.log("API KEY SYSTEM RUNNING")
+const PORT = process.env.PORT || 3000
+
+app.listen(PORT, ()=>{
+  console.log("API KEY SYSTEM RUNNING")
 })
