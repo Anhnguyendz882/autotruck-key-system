@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AutoTruck Panel</title>
+
+<style>
+
+body{
+background:linear-gradient(135deg,#0f172a,#020617);
+font-family:Arial;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+flex-direction:column;
+margin:0;
+}
+
+.glass{
+backdrop-filter:blur(15px);
+background:rgba(255,255,255,0.05);
+border-radius:16px;
+padding:40px;
+box-shadow:0 0 40px rgba(0,0,0,0.6);
+animation:fade 0.7s ease;
+}
+
+input{
+padding:10px;
+border:none;
+border-radius:6px;
+width:220px;
+margin-top:10px;
+}
+
+button{
+margin-top:15px;
+padding:10px 20px;
+border:none;
+border-radius:8px;
+background:#3b82f6;
+color:white;
+cursor:pointer;
+}
+
+table{
+margin-top:30px;
+border-collapse:collapse;
+}
+
+td,th{
+border:1px solid rgba(255,255,255,0.2);
+padding:10px 18px;
+}
+
+.stat{
+margin-top:10px;
+font-size:18px;
+}
+
+@keyframes fade{
+from{opacity:0;transform:translateY(20px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="login" class="glass">
+
+<h2>Admin Login</h2>
+
+<input id="user" placeholder="Admin Username">
+
+<br>
+
+<input id="pass" type="password" placeholder="Admin Password">
+
+<br>
+
+<button onclick="login()">Login</button>
+
+</div>
+
+
+<div id="dashboard" style="display:none">
+
+<h1>AutoTruck Key Panel</h1>
+
+<div class="stat" id="totalKeys">Total Keys: 0</div>
+
+<table id="keys">
+
+<tr>
+<th>Key</th>
+<th>Player</th>
+<th>Expire</th>
+</tr>
+
+</table>
+
+</div>
+
+
+<script>
+
+function login(){
+
+const user=document.getElementById("user").value
+const pass=document.getElementById("pass").value
+
+if(user==="admin" && pass==="123456"){
+
+document.getElementById("login").style.display="none"
+document.getElementById("dashboard").style.display="block"
+
+loadKeys()
+
+}else{
+
+alert("Wrong admin login")
+
+}
+
+}
+
+function loadKeys(){
+
+fetch("/keys")
+.then(res=>res.json())
+.then(data=>{
+
+document.getElementById("totalKeys").innerText="Total Keys: "+data.length
+
+const table=document.getElementById("keys")
+
+data.forEach(k=>{
+
+const row=document.createElement("tr")
+
+row.innerHTML=`
+<td>${k.key}</td>
+<td>${k.player}</td>
+<td>${new Date(k.expire*1000).toLocaleDateString()}</td>
+`
+
+table.appendChild(row)
+
+})
+
+})
+
+}
+
+</script>
+
+</body>
+  </html>
